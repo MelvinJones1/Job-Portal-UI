@@ -1,22 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router";
 
 const HrSignup = () => {
-  const [hrData, setHrData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    companyId: "",
-  });
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [contact, setContact] = useState("");
+  const [password, setPassword] = useState("");
+  const [companyId, setCompanyId] = useState("");
+  const [profilePic, setProfilePic] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const navigate = useNavigate();
 
-  // Handle input changes
-  const handleChange = (e) => {
-    setHrData({ ...hrData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      const response = await axios.get("http://localhost:8081/api/company/all");
+      setCompanies(response.data);
+    };
+    fetchCompanies();
+  }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form data:", hrData);
-    // You will call API here later
+
+    const hrData = {
+      name,
+      email,
+      contact,
+      photoUrl: "",
+      user: {
+        username: email,
+        password,
+        role: "HR",
+      },
+      company: {
+        id: companyId,
+      },
+    };
+
+    const response = await axios.post(
+      "http://localhost:8081/api/hr/add/",
+      hrData,
+    );
+    const createdHr = response.data;
+
+    if (profilePic) {
+      const formData = new FormData();
+      formData.append("file", profilePic);
+      await axios.post(
+        `http://localhost:8081/api/hr/upload-profile/${createdHr.id}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+    }
+
+    alert("Signup successful!");
+    navigate("/");
   };
 
   return (
@@ -27,77 +66,94 @@ const HrSignup = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Full Name
             </label>
             <input
               type="text"
-              name="name"
-              value={hrData.name}
-              onChange={handleChange}
-              placeholder="John Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
               required
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              Email (Username)
             </label>
             <input
               type="email"
-              name="email"
-              value={hrData.email}
-              onChange={handleChange}
-              placeholder="john.doe@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
               required
             />
           </div>
 
-          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contact Number
+            </label>
+            <input
+              type="number"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+              required
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
               type="password"
-              name="password"
-              value={hrData.password}
-              onChange={handleChange}
-              placeholder="Enter a strong password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
               required
             />
           </div>
 
-          {/* Company Dropdown */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Company
             </label>
             <select
-              name="companyId"
-              value={hrData.companyId}
-              onChange={handleChange}
+              value={companyId}
+              onChange={(e) => setCompanyId(e.target.value)}
               className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
               required
             >
               <option value="" disabled>
                 Select a company
               </option>
-              <option value="1">TCS</option>
-              <option value="2">Infosys</option>
-              <option value="3">Wipro</option>
-              {/* Replace these with dynamic company options later */}
+              {companies.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Submit Button */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Profile Picture (Optional)
+            </label>
+            <input
+              type="file"
+              onChange={(e) => setProfilePic(e.target.files[0])}
+              accept="image/*"
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Accepted formats: .png, .jpg, .jpeg, .gif
+            </p>
+          </div>
+
           <button
             type="submit"
             className="w-full bg-blue-600 text-white font-semibold py-2 rounded-xl hover:bg-blue-700 transition"

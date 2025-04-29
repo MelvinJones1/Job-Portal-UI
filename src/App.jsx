@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import HrDashboard from "./components/HR/HrDashboard";
 import Login from "./components/auth/Login";
 import { Route, Routes } from "react-router";
@@ -7,14 +7,22 @@ import ExecutiveDashboard from "./components/Executive/ExecutiveDashboard";
 import Jobs from "./components/Manage Jobs/Jobs";
 import Interview from "./components/Manage Interviews/Interviews";
 import HrSignup from "./components/auth/HrSignUpForm";
-
-const dummyCompanies = [
-  { id: 1, name: "TCS" },
-  { id: 2, name: "Infosys" },
-  { id: 3, name: "Wipro" },
-];
+import { useDispatch, useSelector } from "react-redux";
+import fetchUserDetails from "./store/actions/userActions";
 
 function App() {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user.user);
+  useEffect(() => {
+    const currentToken = localStorage.getItem("token");
+
+    if (
+      !user ||
+      (currentToken && user.user?.username !== localStorage.getItem("username"))
+    ) {
+      dispatch(fetchUserDetails());
+    }
+  }, [dispatch, user]);
   return (
     <Routes>
       <Route index element={<Login />} />

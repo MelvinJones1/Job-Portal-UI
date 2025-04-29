@@ -1,194 +1,103 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
+import Sidebar from "../Reusable Components/Sidebar";
+import { useSelector } from "react-redux";
 
 const HrDashboard = () => {
-  // Dummy data
-  const user = {
-    name: "Sarah Johnson",
-    role: "HR Manager",
-    company: "Hexaware Technologies",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-  };
-
-  const [recentjobs, setRecentJobs] = useState([]);
+  const user = useSelector((state) => state.user.user); // I am using redux to use the user datas globally
+  const [recentJobs, setRecentJobs] = useState([]);
   const [recentInterviews, setRecentInterviews] = useState([]);
+  const [totalJobs, setTotalJobs] = useState(0);
+  const [totalHired, setTotalHired] = useState(0);
 
+  console.log(user?.photoUrl?.split("\\").pop());
+
+  // Fetch recent jobs
   useEffect(() => {
-    const getRecentJobs = async () => {
-      const response = await axios.get();
+    const fetchRecentJobs = async () => {
+      if (!user?.user?.id) return;
+
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:8081/api/hr/recent-jobs/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
       setRecentJobs(response.data);
     };
 
-    const getRecentInterviews = async () => {
-      try {
-        const response = await axios.get("");
-        setRecentInterviews(response.data);
-      } catch (error) {}
+    fetchRecentJobs();
+  }, [user]);
+
+  // Fetch upcoming interviews
+  useEffect(() => {
+    const fetchUpcomingInterviews = async () => {
+      if (!user?.user?.id) return;
+
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:8081/api/hr/recent-interviews/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setRecentInterviews(response.data);
     };
-    getRecentJobs();
-    getRecentInterviews();
-  });
 
-  const recentJobs = [
-    {
-      title: "Senior Frontend Developer",
-      status: "Active",
-      posted: "2 days ago",
-      applications: 32,
-    },
-    {
-      title: "UX Designer",
-      status: "Active",
-      posted: "1 week ago",
-      applications: 18,
-    },
-    {
-      title: "DevOps Engineer",
-      status: "Draft",
-      posted: "Draft saved yesterday",
-      applications: null,
-    },
-  ];
+    fetchUpcomingInterviews();
+  }, [user]);
 
-  const upcomingInterviews = [
-    {
-      name: "John Smith",
-      role: "Frontend Dev",
-      time: "10:00 AM",
-      type: "Technical Interview",
-      iconType: "video",
-    },
-    {
-      name: "Emily Davis",
-      role: "UX Designer",
-      time: "2:30 PM",
-      type: "Portfolio Review",
-      iconType: "user",
-    },
-    {
-      name: "Michael Brown",
-      role: "DevOps Eng",
-      time: "4:00 PM",
-      type: "Final Round",
-      iconType: "building",
-    },
-  ];
+  // Fetch stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user?.user?.id) return;
 
-  // Simple icon renderer using text symbols
-  const renderIcon = (type) => {
-    switch (type) {
-      case "dashboard":
-        return "📊";
-      case "jobs":
-        return "💼";
-      case "applications":
-        return "👥";
-      case "calendar":
-        return "📅";
-      case "logout":
-        return "🚪";
-      case "menu":
-        return "☰";
-      case "plus":
-        return "+";
-      case "video":
-        return "🎥";
-      case "user":
-        return "👔";
-      case "building":
-        return "🏢";
-      case "inbox":
-        return "📥";
-      default:
-        return "⚙️";
-    }
-  };
+      const token = localStorage.getItem("token");
+
+      // Fetch total jobs
+      const jobsResponse = await axios.get(
+        `http://localhost:8081/api/hr/total-jobs/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setTotalJobs(jobsResponse.data);
+
+      // Fetch total hires
+      const hiresResponse = await axios.get(
+        `http://localhost:8081/api/hr/total-hires/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setTotalHired(hiresResponse.data);
+    };
+
+    fetchStats();
+  }, [user]);
 
   return (
     <div className="bg-gray-100">
       <div className="flex h-screen overflow-hidden">
-        {/* Sidebar */}
-        <div className="hidden md:flex md:flex-shrink-0">
-          <div className="flex flex-col w-64 bg-indigo-900 text-white">
-            <div className="flex items-center justify-center h-16 px-4 bg-indigo-800 shadow-md">
-              <span className="text-2xl mr-2">👥</span>
-              <span className="text-xl font-bold">
-                Career <span className="text-indigo-300">Crafter</span>
-              </span>
-            </div>
-            <div className="flex flex-col flex-grow px-4 py-4 overflow-y-auto">
-              <nav className="flex-1 space-y-1">
-                <a
-                  href="#"
-                  className="flex items-center px-4 py-3 text-sm font-medium text-white bg-indigo-800 rounded-lg"
-                >
-                  <span className="mr-3">{renderIcon("dashboard")}</span>
-                  Dashboard
-                </a>
-                <Link
-                  to={"/manage-jobs"}
-                  href="#"
-                  className="flex items-center px-4 py-3 text-sm font-medium text-indigo-200 hover:text-white hover:bg-indigo-700 rounded-lg"
-                >
-                  <span className="mr-3">{renderIcon("jobs")}</span>
-                  Manage Jobs
-                </Link>
-                <Link
-                  to="/manage-applications"
-                  className="flex items-center px-4 py-3 text-sm font-medium text-indigo-200 hover:text-white hover:bg-indigo-700 rounded-lg"
-                >
-                  <span className="mr-3">{renderIcon("applications")}</span>
-                  Manage Applications
-                </Link>
-
-                <Link
-                  to={"/manage-interviews"}
-                  href="#"
-                  className="flex items-center px-4 py-3 text-sm font-medium text-indigo-200 hover:text-white hover:bg-indigo-700 rounded-lg"
-                >
-                  <span className="mr-3">{renderIcon("calendar")}</span>
-                  Manage Interviews
-                </Link>
-              </nav>
-
-              {/* User Profile Section in Sidebar */}
-              <div className="mt-auto mb-4">
-                <div className="px-4 py-3 text-sm rounded-lg bg-indigo-800 border border-indigo-700">
-                  <div className="flex items-center">
-                    <img
-                      className="w-10 h-10 rounded-full border-2 border-indigo-400"
-                      src={user.avatar}
-                      alt="Profile"
-                    />
-                    <div className="ml-3">
-                      <p className="font-semibold text-white">{user.name}</p>
-                      <p className="text-xs text-indigo-300">{user.role}</p>
-                      <p className="text-xs text-indigo-400 mt-1">
-                        {user.company}
-                      </p>
-                    </div>
-                    <button
-                      className="ml-auto text-indigo-300 hover:text-white focus:outline-none"
-                      title="Logout"
-                    >
-                      <span>{renderIcon("logout")}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Sidebar />
 
         {/* Main content */}
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Top navigation */}
           <header className="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200 shadow-sm">
             <div className="flex items-center">
-              {/* Mobile Sidebar Toggle */}
               <button className="text-gray-500 focus:outline-none md:hidden mr-4">
-                <span className="text-xl">{renderIcon("menu")}</span>
+                <span className="text-xl">☰</span>
               </button>
               <h1 className="text-xl font-semibold text-gray-800">
                 Dashboard Overview
@@ -198,11 +107,11 @@ const HrDashboard = () => {
               <div className="flex items-center">
                 <img
                   className="w-9 h-9 rounded-full border border-gray-300"
-                  src={user.avatar}
+                  src={`/images/${user?.photoUrl?.split("\\").pop()}`}
                   alt="Profile"
                 />
                 <span className="hidden md:inline-block ml-2 text-sm font-medium text-gray-700">
-                  {user.name}
+                  {user?.name || "User"}
                 </span>
               </div>
             </div>
@@ -213,11 +122,49 @@ const HrDashboard = () => {
             {/* Welcome Message */}
             <div className="mb-6 p-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-premium">
               <h2 className="text-2xl font-semibold">
-                Welcome back, {user.name}!
+                Welcome back, {user?.name || "User"}!
               </h2>
               <p className="text-indigo-100">
-                Here's your recruitment overview for {user.company}.
+                Here's your recruitment overview for{" "}
+                {user?.company?.name || "Company Name"}.
               </p>
+            </div>
+
+            {/* Stats Section */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Total Jobs Card */}
+              <div className="bg-white p-6 rounded-lg shadow-premium border-l-4 border-indigo-500">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Total No of Jobs Posted
+                    </p>
+                    <p className="mt-1 text-3xl font-semibold text-gray-900">
+                      {totalJobs}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                    <span className="text-xl">💼</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hired Candidates Card */}
+              <div className="bg-white p-6 rounded-lg shadow-premium border-l-4 border-green-500">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Hired Candidates
+                    </p>
+                    <p className="mt-1 text-3xl font-semibold text-gray-900">
+                      {totalHired}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-full bg-green-100 text-green-600">
+                    <span className="text-xl">👍</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Quick Actions Section */}
@@ -225,28 +172,19 @@ const HrDashboard = () => {
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 Quick Actions
               </h2>
-              <div className="flex flex-wrap gap-4">
-                <a
-                  href="#"
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link
+                  to="/manage-jobs"
                   className="flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
-                  <span className="mr-2">{renderIcon("plus")}</span> Post New
-                  Job
-                </a>
-                <a
-                  href="#"
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  <span className="mr-2">{renderIcon("calendar")}</span> View
-                  Today's Schedule
-                </a>
-                <a
-                  href="#"
+                  <span className="mr-2">+</span> Post New Job
+                </Link>
+                <Link
+                  to="/manage-applications"
                   className="flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
-                  <span className="mr-2">{renderIcon("inbox")}</span> Review New
-                  Applications
-                </a>
+                  <span className="mr-2">📥</span> Review New Applications
+                </Link>
               </div>
             </div>
 
@@ -258,17 +196,17 @@ const HrDashboard = () => {
                   <h2 className="text-lg font-semibold text-gray-800">
                     Recent Job Postings
                   </h2>
-                  <a
-                    href="#"
+                  <Link
+                    to="/jobs"
                     className="text-sm text-indigo-600 hover:text-indigo-800"
                   >
                     View All
-                  </a>
+                  </Link>
                 </div>
                 <div className="space-y-4">
-                  {recentJobs.map((job, index) => (
+                  {recentJobs.map((job) => (
                     <div
-                      key={index}
+                      key={job.id}
                       className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50 hover:shadow-sm"
                     >
                       <div className="flex items-center justify-between">
@@ -277,22 +215,21 @@ const HrDashboard = () => {
                         </h3>
                         <span
                           className={`flex-shrink-0 px-2 py-1 text-xs font-medium rounded-full ${
-                            job.status === "Active"
+                            job.status === "PUBLISHED"
                               ? "text-green-800 bg-green-100"
-                              : "text-yellow-800 bg-yellow-100"
+                              : job.status === "DRAFT"
+                              ? "text-yellow-800 bg-yellow-100"
+                              : "text-red-800 bg-red-100"
                           }`}
                         >
                           {job.status}
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-gray-500">
-                        {job.posted}
-                        {job.applications && (
-                          <span className="font-medium text-gray-700">
-                            {" "}
-                            • {job.applications} apps
-                          </span>
-                        )}
+                        Deadline: {job.application_deadline}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {job.job_type} • {job.location}
                       </p>
                     </div>
                   ))}
@@ -303,37 +240,44 @@ const HrDashboard = () => {
               <div className="lg:col-span-1 p-6 bg-white rounded-lg shadow-premium">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-800">
-                    Upcoming Interviews (Today)
+                    Upcoming Interviews
                   </h2>
-                  <a
-                    href="#"
+                  <Link
+                    to="/interviews"
                     className="text-sm text-indigo-600 hover:text-indigo-800"
                   >
                     View Schedule
-                  </a>
+                  </Link>
                 </div>
                 <div className="space-y-4">
-                  {upcomingInterviews.map((interview, index) => (
+                  {recentInterviews.map((interview) => (
                     <div
-                      key={index}
+                      key={interview.id}
                       className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50 hover:shadow-sm"
                     >
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium text-gray-900 truncate w-3/4">
-                          {interview.name}
+                          {interview.candidateName || "Candidate"}
                           <span className="text-gray-500 text-xs">
-                            ({interview.role})
+                            ({interview.position || "Position"})
                           </span>
                         </h3>
                         <span className="flex-shrink-0 px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
-                          {interview.time}
+                          {interview.scheduledTime}
                         </span>
                       </div>
                       <p className="mt-1 text-sm text-gray-500">
                         <span className="mr-1">
-                          {renderIcon(interview.iconType)}
+                          {interview.round === "Technical"
+                            ? "🎥"
+                            : interview.round === "HR"
+                            ? "👔"
+                            : "🏢"}
                         </span>{" "}
-                        {interview.type}
+                        {interview.round} Round
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        Status: {interview.status}
                       </p>
                     </div>
                   ))}
@@ -344,8 +288,8 @@ const HrDashboard = () => {
 
           {/* Footer */}
           <footer className="p-4 bg-white border-t border-gray-200 text-center text-sm text-gray-500">
-            © 2025 {user.company}. All rights reserved. Powered by Career
-            Crafter.
+            © 2025 {user?.company?.name || "Company Name"}. All rights reserved.
+            Powered by Career Crafter.
           </footer>
         </div>
       </div>

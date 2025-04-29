@@ -40,6 +40,7 @@ function Login() {
       );
       console.log(response);
       const token = response.data.token;
+      localStorage.clear();
       localStorage.setItem("token", token);
       localStorage.setItem("username", username);
 

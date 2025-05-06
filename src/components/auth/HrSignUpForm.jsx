@@ -149,9 +149,6 @@ const HrSignup = () => {
               accept="image/*"
               className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Accepted formats: .png, .jpg, .jpeg, .gif
-            </p>
           </div>
 
           <button

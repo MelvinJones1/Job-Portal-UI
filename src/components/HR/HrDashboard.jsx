@@ -2,21 +2,31 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../Reusable Components/Sidebar";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import fetchUserDetails from "../../store/actions/userActions.js";
 
 const HrDashboard = () => {
-  const user = useSelector((state) => state.user.user); // I am using redux to use the user datas globally
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user.user);
+  useEffect(() => {
+    const currentToken = localStorage.getItem("token");
+
+    if (
+      !user ||
+      (currentToken && user.user?.username !== localStorage.getItem("username"))
+    ) {
+      dispatch(fetchUserDetails());
+    }
+  }, [dispatch, user]);
   const [recentJobs, setRecentJobs] = useState([]);
   const [recentInterviews, setRecentInterviews] = useState([]);
   const [totalJobs, setTotalJobs] = useState(0);
   const [totalHired, setTotalHired] = useState(0);
 
-  console.log(user?.photoUrl?.split("\\").pop());
-
   // Fetch recent jobs
   useEffect(() => {
     const fetchRecentJobs = async () => {
-      if (!user?.user?.id) return;
+      if (!user?.id) return;
 
       const token = localStorage.getItem("token");
       const response = await axios.get(
@@ -36,7 +46,7 @@ const HrDashboard = () => {
   // Fetch upcoming interviews
   useEffect(() => {
     const fetchUpcomingInterviews = async () => {
-      if (!user?.user?.id) return;
+      if (!user?.id) return;
 
       const token = localStorage.getItem("token");
       const response = await axios.get(
@@ -56,7 +66,7 @@ const HrDashboard = () => {
   // Fetch stats
   useEffect(() => {
     const fetchStats = async () => {
-      if (!user?.user?.id) return;
+      if (!user?.id) return;
 
       const token = localStorage.getItem("token");
 
@@ -85,6 +95,20 @@ const HrDashboard = () => {
 
     fetchStats();
   }, [user]);
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  // Format time for display
+  const formatTime = (timeString) => {
+    if (!timeString) return "N/A";
+    const time = timeString.split(":");
+    return `${time[0]}:${time[1]}`; // Returns HH:MM format
+  };
 
   return (
     <div className="bg-gray-100">
@@ -210,7 +234,7 @@ const HrDashboard = () => {
                       className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50 hover:shadow-sm"
                     >
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-gray-900 truncate w-4/5">
+                        <h3 className="font-medium text-gray-900 truncate">
                           {job.title}
                         </h3>
                         <span
@@ -225,12 +249,24 @@ const HrDashboard = () => {
                           {job.status}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Deadline: {job.application_deadline}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {job.job_type} • {job.location}
-                      </p>
+                      <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-500">
+                        <div>
+                          <span className="font-medium">Department:</span>{" "}
+                          {job.department}
+                        </div>
+                        <div>
+                          <span className="font-medium">Type:</span>{" "}
+                          {job.jobType}
+                        </div>
+                        <div>
+                          <span className="font-medium">Location:</span>{" "}
+                          {job.location}
+                        </div>
+                        <div>
+                          <span className="font-medium">Deadline:</span>{" "}
+                          {formatDate(job.applicationDeadline)}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -256,29 +292,31 @@ const HrDashboard = () => {
                       className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50 hover:shadow-sm"
                     >
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-gray-900 truncate w-3/4">
-                          {interview.candidateName || "Candidate"}
-                          <span className="text-gray-500 text-xs">
-                            ({interview.position || "Position"})
-                          </span>
+                        <h3 className="font-medium text-gray-900 truncate">
+                          {interview.application.jobSeeker?.name || "Candidate"}
                         </h3>
                         <span className="flex-shrink-0 px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
-                          {interview.scheduledTime}
+                          {interview.application.job.title}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-gray-500">
-                        <span className="mr-1">
-                          {interview.round === "Technical"
-                            ? "🎥"
-                            : interview.round === "HR"
-                            ? "👔"
-                            : "🏢"}
-                        </span>{" "}
-                        {interview.round} Round
-                      </p>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Status: {interview.status}
-                      </p>
+                      <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-500">
+                        <div>
+                          <span className="font-medium">Date:</span>{" "}
+                          {formatDate(interview.date)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Time:</span>{" "}
+                          {formatTime(interview.time)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Type:</span>{" "}
+                          {interview.type}
+                        </div>
+                        <div>
+                          <span className="font-medium">Mode:</span>{" "}
+                          {interview.modeDetails}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

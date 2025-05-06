@@ -40,7 +40,8 @@ function Login() {
       );
       console.log(response);
       const token = response.data.token;
-      localStorage.clear();
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
       localStorage.setItem("token", token);
       localStorage.setItem("username", username);
 
@@ -54,13 +55,15 @@ function Login() {
       );
 
       console.log(resp.data);
+      localStorage.setItem("role", resp.data.role);
+
       switch (resp.data.role) {
         case "HR":
           navigate("/hr-dashboard");
           break;
 
         case "EXECUTIVE":
-          break;
+          navigate("/executive-dashboard");
         default:
           break;
       }

@@ -1,14 +1,29 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import fetchUserDetails from "../../store/actions/userActions.js";
 
 const Sidebar = () => {
   const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
 
+  const dispatch = useDispatch();
+  useEffect(() => {
+    const currentToken = localStorage.getItem("token");
+
+    if (
+      !user ||
+      (currentToken && user.user?.username !== localStorage.getItem("username"))
+    ) {
+      dispatch(fetchUserDetails());
+    }
+  }, [dispatch, user]);
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    localStorage.removeItem("role");
+
     navigate("/");
   };
 
@@ -43,6 +58,13 @@ const Sidebar = () => {
             >
               <span className="mr-3">👥</span>
               Manage Applications
+            </Link>
+            <Link
+              to="/manage-assessments"
+              className="flex items-center px-4 py-3 text-sm font-medium text-indigo-200 hover:text-white hover:bg-indigo-700 rounded-lg"
+            >
+              <span className="mr-3">📝</span>
+              Manage Assessments
             </Link>
             <Link
               to="/manage-interviews"

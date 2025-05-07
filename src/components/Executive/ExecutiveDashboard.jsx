@@ -8,16 +8,17 @@ function ExecutiveDashboard() {
   const user = useSelector((state) => state.user.user);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submittingId, setSubmittingId] = useState(null);
-  const [feedbackMap, setFeedbackMap] = useState({}); // key: interviewId
+  const [feedbackText, setFeedbackText] = useState(""); // Single feedback input
+  const [currentInterviewId, setCurrentInterviewId] = useState(null); // Track current interview ID for feedback
 
-  const dispatch = useDispatch();
+  // Fetch user details if needed
   useEffect(() => {
     const currentToken = localStorage.getItem("token");
-
     if (
       !user ||
       (currentToken && user.user?.username !== localStorage.getItem("username"))
@@ -26,6 +27,7 @@ function ExecutiveDashboard() {
     }
   }, [dispatch, user]);
 
+  // Load interviews on mount
   useEffect(() => {
     fetchInterviews();
   }, []);
@@ -48,13 +50,13 @@ function ExecutiveDashboard() {
     }
   };
 
-  const handleFeedbackChange = (id, text) => {
-    setFeedbackMap((prev) => ({ ...prev, [id]: text }));
+  const handleFeedbackChange = (text) => {
+    setFeedbackText(text);
   };
 
   const submitFeedback = async (interviewId) => {
-    const feedback = feedbackMap[interviewId];
-    if (!feedback || !feedback.trim()) {
+    const feedback = feedbackText.trim();
+    if (!feedback) {
       return alert("Please enter feedback before submitting.");
     }
 
@@ -69,7 +71,9 @@ function ExecutiveDashboard() {
         },
       );
       alert("Feedback submitted successfully!");
-      fetchInterviews();
+      setFeedbackText(""); // Clear input after submission
+      setCurrentInterviewId(null); // Reset active interview ID
+      fetchInterviews(); // Refresh list
     } catch (err) {
       console.error("Feedback submission failed", err);
       alert("Failed to submit feedback. Please try again.");
@@ -167,7 +171,7 @@ function ExecutiveDashboard() {
                           href={interview.modeDetails}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-600 underline hover:text-indigo-800"
+                          className="text-indigo-600  hover:text-indigo-800 no-underline"
                         >
                           Join Video Call
                         </a>
@@ -198,19 +202,18 @@ function ExecutiveDashboard() {
                 <div className="mt-6">
                   <textarea
                     rows={3}
-                    value={feedbackMap[interview.id] || ""}
-                    onChange={(e) =>
-                      handleFeedbackChange(interview.id, e.target.value)
+                    value={
+                      interview.id === currentInterviewId ? feedbackText : ""
                     }
+                    onChange={(e) => handleFeedbackChange(e.target.value)}
                     placeholder="Write your feedback here..."
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    onFocus={() => setCurrentInterviewId(interview.id)} // Set active ID when focused
                   />
+
                   <button
                     onClick={() => submitFeedback(interview.id)}
-                    disabled={
-                      submittingId === interview.id ||
-                      !feedbackMap[interview.id]?.trim()
-                    }
+                    disabled={submittingId === interview.id}
                     className={`mt-3 w-full py-2 px-4 rounded-md font-semibold transition duration-200 ${
                       submittingId === interview.id
                         ? "bg-gray-300 cursor-not-allowed"

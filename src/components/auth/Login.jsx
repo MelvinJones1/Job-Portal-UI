@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import users from "../data/user";
 import axios from "axios";
 
@@ -139,7 +139,7 @@ function Login() {
               {/* Login Button */}
               <button
                 onClick={login}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+                className="w-full cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
               >
                 Login
               </button>
@@ -148,15 +148,18 @@ function Login() {
             {/* Card Footer */}
             <div className="bg-gray-50 px-6 py-4 text-center">
               <p className="text-gray-600 text-sm">
-                Don't have an Account?{" "}
-                <a href="#" className="text-indigo-600 hover:underline">
-                  Sign Up
-                </a>
-              </p>
-              <p className="text-gray-600 text-sm mt-1">
-                <a href="#" className="text-indigo-600 hover:underline">
-                  Reset Password
-                </a>
+                Don't have an Account? <br />
+                <Link to={"/hr-signup"}>
+                  <span className="text-indigo-600 no-underline">
+                    Sign Up as Hr
+                  </span>
+                </Link>
+                <Link to={"/executive-signup"}>
+                  <br />
+                  <span className="text-indigo-600 no-underline">
+                    Sign Up as Executive
+                  </span>
+                </Link>
               </p>
             </div>
           </div>

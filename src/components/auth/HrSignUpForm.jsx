@@ -10,6 +10,7 @@ const HrSignup = () => {
   const [companyId, setCompanyId] = useState("");
   const [profilePic, setProfilePic] = useState(null);
   const [companies, setCompanies] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {

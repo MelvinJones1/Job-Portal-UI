@@ -11,6 +11,7 @@ function Interview() {
   const [page, setPage] = useState(0);
   const [size] = useState(4); // fixed size per page
   const [hasMore, setHasMore] = useState(true); // tracks if there's more data
+
   useEffect(() => {
     fetchInterviews();
   }, [page]);
@@ -23,7 +24,6 @@ function Interview() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setInterviews(response.data);
-      console.log(response);
       setHasMore(response.data.length >= size);
     } catch (error) {
       console.error("Error fetching interviews:", error);
@@ -54,7 +54,7 @@ function Interview() {
   return (
     <div className="flex bg-gray-100 min-h-screen">
       {/* Sidebar full height */}
-      <div className="flex h-screen ">
+      <div className="flex h-screen">
         <Sidebar />
       </div>
 
@@ -125,6 +125,7 @@ function Interview() {
               )}
             </tbody>
           </table>
+
           <div className="flex justify-between items-center p-4">
             <button
               onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
@@ -152,6 +153,7 @@ function Interview() {
             <h3 className="text-xl font-semibold mb-4 text-gray-800">
               Reschedule Interview
             </h3>
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 New Date
@@ -163,6 +165,7 @@ function Interview() {
                 onChange={(e) => setNewDate(e.target.value)}
               />
             </div>
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 New Time
@@ -174,6 +177,7 @@ function Interview() {
                 onChange={(e) => setNewTime(e.target.value)}
               />
             </div>
+
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
